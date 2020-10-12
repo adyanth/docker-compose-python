@@ -1,18 +1,13 @@
 import compose.cli.main as compose
 from compose.parallel import ParallelStreamWriter
 from functools import partial
-from TailLogger import TailLogger
 from io import StringIO
 import logging
 
-def monkey_patch_compose(compose, logObject, logHandler):
+def monkey_patch_compose(compose, logObject):
     compose.console_handler = logging.StreamHandler(logObject)
 
     ParallelStreamWriter(logObject).set_noansi()
-
-    logging.getLogger().addHandler(logHandler)
-    for name in logging.root.manager.loggerDict:
-        logging.getLogger(name).addHandler(logHandler)
 
     def log_printer_from_project(
         project,
@@ -57,10 +52,7 @@ def run(file):
 
 if __name__ == "__main__":
     output = StringIO()
-    tail = TailLogger(1000)
-    monkey_patch_compose(compose, output, tail.log_handler)
+    monkey_patch_compose(compose, output)
     run('docker-compose-test.yml')
     print("Output:")
     print(output.getvalue())
-    print("Tail:")
-    print(tail.contents())
